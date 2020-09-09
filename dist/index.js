@@ -854,15 +854,19 @@ const formatTime = (ms) => {
   const sign = Math.sign(ms) < 0 ? '-' : ''
   const msAbs = Math.abs(ms)
 
-  const millis = (msAbs % 1000).toFixed(0).padStart(3, '0')
-  const secs = ((msAbs / 1000) % 60).toFixed(0).padStart(2, '0')
-  const mins = msAbs / (1000 * 60)
- 
-  return `${sign}${mins > 0 ? mins + 'm' : ''}${secs}.${millis}s`
+  const millis = Math.floor((msAbs % 1000))
+  const secs = Math.floor(((msAbs / 1000) % 60))
+  const mins = Math.floor(msAbs / (1000 * 60))
+
+  const millisStr = millis.toFixed(0).padStart(3, '0')
+  const secsStr = secs.toFixed(0).padStart(mins > 0 ? 2 : 1, '0')
+  const minsStr = mins > 0 ? mins + 'm' : ''
+  
+  return `${sign}${minsStr}${secsStr}.${millisStr}s`
 };
 
 const formatTimeDiff = (previous, current) => {
-  const diff = previous - current
+  const diff = current - previous
   const time = formatTime(diff)
 
   const percentage = (diff / previous) * 100
@@ -894,8 +898,8 @@ async function run() {
 
     const buildTable = markdownTable([
       [
-        'Previous', 
-        'Current', 
+        'Old time', 
+        'New time', 
         'Diff'
       ], 
       [
