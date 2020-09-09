@@ -850,6 +850,30 @@ const doesPathExists = path => {
   }
 }
 
+const toSeconds = ms => Math.floor(ms / 1000)
+ 
+const formatTime = (totalSecs) => {
+  const sign = Math.sign(totalSecs) < 0 ? '-' : ''
+  const abs = Math.abs(totalSecs)
+
+  const secs = Math.floor(abs % 60)
+  const mins = Math.floor(abs / 60)
+ 
+  const secsStr = secs.toFixed(0).padStart(mins > 0 ? 2 : 1, '0')
+  const minsStr = mins > 0 ? mins + 'm ' : ''
+  
+  return `${sign}${minsStr}${secsStr}s`
+};
+ 
+const formatTimeDiff = (previous, current) => {
+  const diff = current - previous
+  const time = formatTime(diff)
+
+  const percentage = (diff / previous) * 100
+
+  return `${time} (${percentage.toFixed(2)}%)`
+};
+
 async function run() {
   try {
     const statsPaths = {
@@ -865,26 +889,42 @@ async function run() {
     doesPathExists(paths.base)
     doesPathExists(paths.head)
 
-    const assets = {
-      base: require(paths.base).assets,
-      head: require(paths.head).assets
-    }
+    const stats = {
+      base: require(paths.base),
+      head: require(paths.head)
+    } 
+ 
+    const diff = getStatsDiff(stats.base.assets, stats.head.assets, {})
+ 
+    const baseTime = toSeconds(stats.base.time)
+    const headTime = toSeconds(stats.base.time)
 
-    const diff = getStatsDiff(assets.base, assets.head, {})
-
+    const buildTable = markdownTable([
+      [
+        'Old time', 
+        'New time', 
+        'Diff'
+      ],  
+      [
+        formatTime(baseTime),
+        formatTime(headTime),
+        formatTimeDiff(baseTime, headTime)
+      ]
+    ])
+ 
     const summaryTable = markdownTable([
       [
-        'Old size',
-        'New size',
+        'Old size', 
+        'New size', 
         'Diff'
-      ],
+      ],      
       [
         fileSize(diff.total.oldSize),
-        fileSize(diff.total.newSize), 
+        fileSize(diff.total.newSize),
         `${fileSize(diff.total.diff)} (${diff.total.diffPercentage.toFixed(2)}%)`
       ]
     ])
-    
+
     /**
      * Publish a comment in the PR with the diff result.
      */
@@ -899,7 +939,10 @@ async function run() {
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
       issue_number: pullRequestId,
-      body: `## Bundle difference
+      body: `## Build difference
+${buildTable}
+ 
+## Bundle difference
 ${summaryTable}
 `
     })
