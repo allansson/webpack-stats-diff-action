@@ -59,7 +59,7 @@ async function run() {
     const diff = getStatsDiff(stats.base.assets, stats.head.assets, {})
  
     const baseTime = toSeconds(stats.base.time)
-    const headTime = toSeconds(stats.base.time)
+    const headTime = toSeconds(stats.head.time) 
 
     const buildTable = markdownTable([
       [
