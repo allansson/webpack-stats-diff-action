@@ -56,7 +56,9 @@ async function run() {
       head: require(paths.head)
     } 
  
-    const diff = getStatsDiff(stats.base.assets, stats.head.assets, {})
+    const diff = getStatsDiff(stats.base.assets, stats.head.assets, {
+      extensions: [".html", ".js", ".css"] 
+    })
  
     const baseTime = toSeconds(stats.base.time)
     const headTime = toSeconds(stats.head.time) 
